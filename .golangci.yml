@@ -1,0 +1,31 @@
+run:
+  concurrency: 4
+  timeout: 5m
+  issues-exit-code: 1
+  tests: false
+  skip-dirs-use-default: true
+
+linters:
+  disable-all: true
+  enable:
+    - gofmt # форматирование кода (пробелы, отступы, скобки)
+    - goimports # обновление списка imports
+    - govet # общий анализ возможных багов
+    - goconst # нахождение строк, которые следует вынести в константы
+    - funlen # детектирование слишком крупных функций
+    - bodyclose # проверка на незакрытые body после чтения тела ответа
+    - errcheck # проверка на обработку всех ошибок
+    - deadcode # детектирование не использованного кода
+    - exportloopref # детектирование экспорта указателя на переменную внутри цикла
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/emorikvendy/url-shortener
+  govet:
+    check-shadowing: true
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  funlen:
+    lines: 100
+    statements: 50
