@@ -12,20 +12,20 @@ func main() {
 		log.Fatal(err)
 	}
 	defer func(conn net.Conn) {
-		err := conn.Close()
-		if err != nil {
-			log.Printf("Error while closing connection: %v", err)
+		err2 := conn.Close()
+		if err2 != nil {
+			log.Printf("Error while closing connection: %v", err2)
 		}
 	}(conn)
 	buf := make([]byte, 256)
 
 	for {
-		_, err := conn.Read(buf)
-		if err == io.EOF {
+		_, err2 := conn.Read(buf)
+		if err2 == io.EOF {
 			break
 		}
-		if err != nil {
-			log.Printf("Error while reading from connection: %v", err)
+		if err2 != nil {
+			log.Printf("Error while reading from connection: %v", err2)
 			break
 		}
 
