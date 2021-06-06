@@ -2,7 +2,7 @@ name: golangci-lint
 
 on:
   push:
-    branches: [ master ]
+    branches:
   pull_request:
     branches: [ master ]
 jobs:
