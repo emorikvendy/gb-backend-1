@@ -59,7 +59,10 @@ func broadcaster(cancel chan struct{}) {
 			fmt.Scanln(&msg)
 			connections.Range(func(conn net.Conn) {
 				log.Printf("writing %s to %v", msg, conn)
-				io.WriteString(conn, msg)
+				_, err := io.WriteString(conn, msg)
+				if err != nil {
+					log.Printf("Error while writing to connection: %v", err)
+				}
 			})
 		}
 	}
@@ -85,7 +88,7 @@ func closeListener(listener net.Listener, cancel chan struct{}, wg *sync.WaitGro
 }
 
 func watchSignals(cancel chan struct{}, wg *sync.WaitGroup) {
-	osSignalChan := make(chan os.Signal)
+	osSignalChan := make(chan os.Signal, 1)
 	signal.Notify(osSignalChan, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-osSignalChan
 	log.Printf("got signal %+v", sig)
@@ -107,7 +110,10 @@ func handleConn(conn net.Conn, cancel chan struct{}, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-cancel:
-			io.WriteString(conn, "Server is stopping")
+			_, err := io.WriteString(conn, "Server is stopping")
+			if err != nil {
+				log.Printf("Error while writing to connection: %v", err)
+			}
 			cancel <- struct{}{}
 			return
 		case <-ticker.C:
