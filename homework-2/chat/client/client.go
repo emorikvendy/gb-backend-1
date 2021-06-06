@@ -13,7 +13,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Printf("Error while closing connection: %v", err)
+		}
+	}()
 	fmt.Println("Enter your name")
 	var name string
 	_, err = fmt.Scanln(&name)
@@ -22,8 +27,15 @@ func main() {
 	}
 	fmt.Fprintln(conn, name)
 	go func() {
-		io.Copy(os.Stdout, conn)
+		_, err := io.Copy(os.Stdout, conn)
+		if err != nil {
+			log.Printf("Error while copying from connection: %v", err)
+		}
+
 	}()
-	io.Copy(conn, os.Stdin) // until you send ^Z
+	_, err = io.Copy(conn, os.Stdin)
+	if err != nil {
+		log.Printf("Error while copying to connection: %v", err)
+	} // until you send ^Z
 	fmt.Printf("%s: exit", conn.LocalAddr())
 }

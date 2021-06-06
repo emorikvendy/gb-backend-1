@@ -92,7 +92,7 @@ func closeListener(listener net.Listener, cancel chan struct{}, wg *sync.WaitGro
 }
 
 func watchSignals(cancel chan struct{}, wg *sync.WaitGroup) {
-	osSignalChan := make(chan os.Signal)
+	osSignalChan := make(chan os.Signal, 1)
 	signal.Notify(osSignalChan, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-osSignalChan
 	log.Printf("got signal %+v", sig)
