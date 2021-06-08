@@ -3,6 +3,11 @@ info:
   title: Shop
   version: 1.0.0
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
   schemas:
     User:
       type: object
@@ -29,14 +34,6 @@ components:
           format: int64 # в виде целочисленного значения минимальной размерности валюты (например, центы или копейки)
         image_link:
           type: string
-
-securityDefinitions:
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
-
-
 paths:
   /user/login:
     post:
@@ -69,7 +66,7 @@ paths:
                 type: string
         400:
           description: Invalid username/password supplied
-          content: {}
+          content: { }
   /user/logout:
     post:
       summary: Logs out current logged in user session
@@ -77,7 +74,7 @@ paths:
       responses:
         200:
           description: successful logout
-          content: {}
+          content: { }
   /items:
     get:
       summary: Lists Items with filters
@@ -108,26 +105,28 @@ paths:
                   $ref: '#/components/schemas/Item'
         400:
           description: Invalid price range
-          content: {}
+          content: { }
     post:
       summary: "Add a new item to the store"
       operationId: "CreateItem"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Item object that needs to be added to the store"
-          required: true
-          schema:
-            $ref: "#/definitions/Item"
+      requestBody:
+        description: "Item object that needs to be added to the store"
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: '#/components/schemas/Item'
       responses:
         "405":
           description: "Invalid input"
+        "201":
+          description: "Created"
+          "content":
+            "application/json":
+              "schema":
+                $ref: '#/components/schemas/Item'
       security:
-        - api_key: []
+        - ApiKeyAuth: [ ]
   /items/{itemId}:
     get:
       summary: Find item by ID
@@ -149,7 +148,7 @@ paths:
                 $ref: '#/components/schemas/Item'
         400:
           description: Invalid ID supplied
-          content: {}
+          content: { }
     put:
       summary: Updates a item in the store with form data
       operationId: UpdateItem
@@ -175,9 +174,9 @@ paths:
       responses:
         405:
           description: Invalid input
-          content: {}
+          content: { }
       security:
-        - api_key: []
+        - ApiKeyAuth: [ ]
     delete:
       summary: Deletes a item
       operationId: DeleteItem
@@ -192,31 +191,38 @@ paths:
       responses:
         400:
           description: Invalid ID supplied
-          content: {}
+          content: { }
         404:
           description: Item not found
-          content: {}
+          content: { }
       security:
-        - api_key: []
+        - ApiKeyAuth: [ ]
   /items/upload_image:
     post:
       summary: "uploads an image"
       operationId: "uploadFile"
-      consumes:
-        - "multipart/form-data"
-      produces:
-        - "application/json"
-      parameters:
-        - name: "additionalMetadata"
-          in: "formData"
-          description: "Additional data to pass to server"
-          required: true
-          type: "string"
-        - name: "file"
-          in: "formData"
-          description: "file to upload"
-          required: true
-          type: "file"
+      requestBody:
+        content:
+          "multipart/form-data":
+            schema:
+              properties:
+                additionalMetadata:
+                  description: "Additional data to pass to server"
+                  type: "string"
+                file:
+                  description: "file to upload"
+                  type: string
+                  format: binary
       responses:
+        201:
+          description: Created
+          content:
+            "application/json":
+              schema:
+                properties:
+                  url:
+                    type: string
+                    format: url
+                    description: link to the downloaded file
       security:
-        - api_key: []
+        - ApiKeyAuth: [ ]
