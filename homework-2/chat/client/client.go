@@ -19,13 +19,6 @@ func main() {
 			log.Printf("Error while closing connection: %v", err2)
 		}
 	}()
-	fmt.Println("Enter your name")
-	var name string
-	_, err = fmt.Scanln(&name)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Fprintln(conn, name)
 	go func() {
 		_, err2 := io.Copy(os.Stdout, conn)
 		if err2 != nil {

@@ -134,6 +134,9 @@ LOOP:
 			cancel <- struct{}{}
 			break LOOP
 		default:
+			if first {
+				ch <- "Enter your name"
+			}
 			if ok := input.Scan(); !ok {
 				break LOOP
 			}
