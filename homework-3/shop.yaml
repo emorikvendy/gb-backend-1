@@ -34,9 +34,44 @@ components:
           format: int64 # в виде целочисленного значения минимальной размерности валюты (например, центы или копейки)
         image_link:
           type: string
+    Order:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        userId:
+          type: "integer"
+          format: "int64"
+        shipDate:
+          type: "string"
+          format: "date-time"
+        status:
+          type: "string"
+          description: "Order Status"
+          enum:
+            - "placed"
+            - "approved"
+            - "delivered"
+        complete:
+          type: "boolean"
+          default: false
+        items:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              itemId:
+                type: "integer"
+                format: "int64"
+              quantity:
+                type: "integer"
+                format: "int32"
 paths:
   /user/login:
     post:
+      tags:
+        - Auth
       operationId: loginUser
       parameters:
         - name: username
@@ -69,6 +104,8 @@ paths:
           content: { }
   /user/logout:
     post:
+      tags:
+        - Auth
       summary: Logs out current logged in user session
       operationId: logoutUser
       responses:
@@ -77,6 +114,8 @@ paths:
           content: { }
   /items:
     get:
+      tags:
+        - Items
       summary: Lists Items with filters
       operationId: ListItems
       parameters:
@@ -94,6 +133,15 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: item_ids
+          in: query
+          description: list of item ids
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
       responses:
         200:
           description: successful operation
@@ -107,6 +155,8 @@ paths:
           description: Invalid price range
           content: { }
     post:
+      tags:
+        - Items
       summary: "Add a new item to the store"
       operationId: "CreateItem"
       requestBody:
@@ -129,6 +179,8 @@ paths:
         - ApiKeyAuth: [ ]
   /items/{itemId}:
     get:
+      tags:
+        - Items
       summary: Find item by ID
       operationId: GetItem
       parameters:
@@ -150,6 +202,8 @@ paths:
           description: Invalid ID supplied
           content: { }
     put:
+      tags:
+        - Items
       summary: Updates a item in the store with form data
       operationId: UpdateItem
       parameters:
@@ -178,6 +232,8 @@ paths:
       security:
         - ApiKeyAuth: [ ]
     delete:
+      tags:
+        - Items
       summary: Deletes a item
       operationId: DeleteItem
       parameters:
@@ -199,6 +255,8 @@ paths:
         - ApiKeyAuth: [ ]
   /items/upload_image:
     post:
+      tags:
+        - Items
       summary: "uploads an image"
       operationId: "uploadFile"
       requestBody:
@@ -224,5 +282,186 @@ paths:
                     type: string
                     format: url
                     description: link to the downloaded file
+      security:
+        - ApiKeyAuth: [ ]
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Lists Orders with filters
+      operationId: ListOrders
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: "string"
+            enum:
+              - "placed"
+              - "approved"
+              - "delivered"
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: complete
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: ship_date_min
+          in: query
+          description: Lower shipDate limit
+          required: false
+          schema:
+            type: "string"
+            format: "date-time"
+        - name: ship_date_max
+          in: query
+          description: Upper shipDate limit
+          required: false
+          schema:
+            type: "string"
+            format: "date-time"
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        400:
+          description: Invalid filters
+          content: { }
+      security:
+        - ApiKeyAuth: [ ]
+    post:
+      tags:
+        - Orders
+      summary: "creating a new order"
+      operationId: "CreateOrder"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: "object"
+              properties:
+                shipDate:
+                  type: "string"
+                  format: "date-time"
+                items:
+                  type: "array"
+                  items:
+                    type: "object"
+                    properties:
+                      itemId:
+                        type: "integer"
+                        format: "int64"
+                      quantity:
+                        type: "integer"
+                        format: "int32"
+      responses:
+        "400":
+          description: "Invalid input"
+        "201":
+          description: "Created"
+          "content":
+            "application/json":
+              "schema":
+                $ref: '#/components/schemas/Order'
+      security:
+        - ApiKeyAuth: [ ]
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Find item by ID
+      operationId: GetOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of order to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Order'
+                  - type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        400:
+          description: Invalid ID supplied
+          content: { }
+      security:
+        - ApiKeyAuth: [ ]
+    put:
+      tags:
+        - Orders
+      summary: Updates an order
+      operationId: UpdateOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of order that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        400:
+          description: Invalid input
+          content: { }
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Order'
+                  - type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+    delete:
+      tags:
+        - Orders
+      summary: Deletes order
+      operationId: DeleteOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: Order id to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        400:
+          description: Invalid ID supplied
+          content: { }
+        404:
+          description: Item not found
+          content: { }
+        200:
+          description: successful operation
+          content: { }
       security:
         - ApiKeyAuth: [ ]
