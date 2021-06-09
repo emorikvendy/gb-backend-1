@@ -20,7 +20,7 @@ linters:
 
 linters-settings:
   goimports:
-    local-prefixes: github.com/emorikvendy/url-shortener
+    local-prefixes: github.com/emorikvendy/gb-backend-1
   govet:
     check-shadowing: true
   goconst:
